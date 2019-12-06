@@ -1,6 +1,6 @@
-# XMRig
+# Safex Rig
 
-:warning: **If you mine Safex Cash, Monero, Aeon, Sumokoin, Turtlecoin, Stellite, GRAFT, Haven Protocol, IPBC, [PLEASE READ](https://github.com/xmrig/xmrig/issues/482)!** :warning:
+**:warning: [Safex will change PoW algorithm to a variant of RandomX(RandomSFX) on December 2. 2019.](https://safe.exchange/t/safex-dev-update-november-25-2019/6639)**
 
 [![Github All Releases](https://img.shields.io/github/downloads/xmrig/xmrig/total.svg)](https://github.com/xmrig/xmrig/releases)
 [![GitHub release](https://img.shields.io/github/release/xmrig/xmrig/all.svg)](https://github.com/xmrig/xmrig/releases)
@@ -9,127 +9,102 @@
 [![GitHub stars](https://img.shields.io/github/stars/xmrig/xmrig.svg)](https://github.com/xmrig/xmrig/stargazers)
 [![GitHub forks](https://img.shields.io/github/forks/xmrig/xmrig.svg)](https://github.com/xmrig/xmrig/network)
 
-XMRig is a high performance Safex Cash (SFX) CPU miner, with official support for Windows.
-Originally based on cpuminer-multi with heavy optimizations/rewrites and removing a lot of legacy code, since version 1.0.0 completely rewritten from scratch on C++.
+XMRig High performance, open source, cross platform RandomX, CryptoNight and Argon2 CPU/GPU miner, with official support for Windows.
 
-* This is the **CPU-mining** version, there is also a [NVIDIA GPU version](https://github.com/xmrig/xmrig-nvidia) and [AMD GPU version]( https://github.com/xmrig/xmrig-amd).
-* [Roadmap](https://github.com/xmrig/xmrig/issues/106) for next releases.
+## Mining backends
+- **CPU** (x64/x86/ARM)
+- **OpenCL** for AMD GPUs.
+- **CUDA** for NVIDIA GPUs via external [CUDA plugin](https://github.com/xmrig/xmrig-cuda).
 
-<img src="http://i.imgur.com/OKZRVDh.png" width="619" >
-
-#### Table of contents
-* [Features](#features)
-* [Download](#download)
-* [Usage](#usage)
-* [Algorithm variations](#algorithm-variations)
-* [Build](https://github.com/xmrig/xmrig/wiki/Build)
-* [Common Issues](#common-issues)
-* [Other information](#other-information)
-* [Donations](#donations)
-* [Release checksums](#release-checksums)
-* [Contacts](#contacts)
-
-## Features
-* High performance.
-* Official Windows support.
-* Small Windows executable, without dependencies.
-* x86/x64 support.
-* Support for backup (failover) mining server.
-* keepalived support.
-* Command line options compatible with cpuminer.
-* CryptoNight-Lite support for AEON.
-* Smart automatic [CPU configuration](https://github.com/xmrig/xmrig/wiki/Threads).
-* Nicehash support
-* It's open source software.
+<img src="doc/screenshot.png" width="808" >
 
 ## Download
-* Binary releases: https://github.com/xmrig/xmrig/releases
-* Git tree: https://github.com/xmrig/xmrig.git
-  * Clone with `git clone https://github.com/xmrig/xmrig.git` :hammer: [Build instructions](https://github.com/xmrig/xmrig/wiki/Build).
+* Binary releases: https://github.com/safex/safex-rig/releases
+* Git tree: https://github.com/safex/safex-rig.git
+  * Clone with `git clone https://github.com/safex/safex-rig.git` :hammer: [Build instructions](https://github.com/safex/safex-rig/wiki/Build).
 
 ## Usage
-Use [config.xmrig.com](https://config.xmrig.com/xmrig) to generate, edit or share configurations.
+The preferred way to configure the miner is the [JSON config file](src/config.json) as it is more flexible and human friendly. The command line interface does not cover all features, such as mining profiles for different algorithms. Important options can be changed during runtime without miner restart by editing the config file or executing API calls.
 
-### Options
+* **[xmrig.com/wizard](https://xmrig.com/wizard)** helps you create initial configuration for the miner.
+* **[workers.xmrig.info](http://workers.xmrig.info)** helps manage your miners via HTTP API.
+
+### Command line options
 ```
-  -a, --algo=ALGO          cryptonight (default) or cryptonight-lite
-  -o, --url=URL            URL of mining server
-  -O, --userpass=U:P       username:password pair for mining server
-  -u, --user=USERNAME      username for mining server
-  -p, --pass=PASSWORD      password for mining server
-  -t, --threads=N          number of miner threads
-  -v, --av=N               algorithm variation, 0 auto select
-  -k, --keepalive          send keepalived for prevent timeout (need pool support)
-  -r, --retries=N          number of times to retry before switch to backup server (default: 5)
-  -R, --retry-pause=N      time to pause between retries (default: 5)
-      --cpu-affinity       set process affinity to CPU core(s), mask 0x3 for cores 0 and 1
-      --cpu-priority       set process priority (0 idle, 2 normal to 5 highest)
-      --no-huge-pages      disable huge pages support
-      --no-color           disable colored output
-      --variant            algorithm PoW variant
-      --donate-level=N     donate level, default 5% (5 minutes in 100 minutes)
-      --user-agent         set custom user-agent string for pool
-  -B, --background         run the miner in the background
-  -c, --config=FILE        load a JSON-format configuration file
-  -l, --log-file=FILE      log all output to a file
-  -S, --syslog             use system log for output messages
-      --max-cpu-usage=N    maximum CPU usage for automatic threads mode (default 75)
-      --safe               safe adjust threads and av settings for current CPU
-      --nicehash           enable nicehash/xmrig-proxy support
-      --print-time=N       print hashrate report every N seconds
-      --api-port=N         port for the miner API
-      --api-access-token=T access token for API
-      --api-worker-id=ID   custom worker-id for API
-  -h, --help               display this help and exit
-  -V, --version            output version information and exit
-```
+Network:
+  -o, --url=URL                 URL of mining server
+  -a, --algo=ALGO               mining algorithm https://xmrig.com/docs/algorithms
+      --coin=COIN               specify coin instead of algorithm
+  -u, --user=USERNAME           username for mining server
+  -p, --pass=PASSWORD           password for mining server
+  -O, --userpass=U:P            username:password pair for mining server
+  -k, --keepalive               send keepalived packet for prevent timeout (needs pool support)
+      --nicehash                enable nicehash.com support
+      --rig-id=ID               rig identifier for pool-side statistics (needs pool support)
+      --tls                     enable SSL/TLS support (needs pool support)
+      --tls-fingerprint=HEX     pool TLS certificate fingerprint for strict certificate pinning
+      --daemon                  use daemon RPC instead of pool for solo mining
+      --daemon-poll-interval=N  daemon poll interval in milliseconds (default: 1000)
+  -r, --retries=N               number of times to retry before switch to backup server (default: 5)
+  -R, --retry-pause=N           time to pause between retries (default: 5)
+      --user-agent              set custom user-agent string for pool
+      --donate-level=N          donate level, default 5%% (5 minutes in 100 minutes)
+      --donate-over-proxy=N     control donate over xmrig-proxy feature
 
-Also you can use configuration via config file, default **config.json**. You can load multiple config files and combine it with command line options.
+CPU backend:
+      --no-cpu                  disable CPU mining backend
+  -t, --threads=N               number of CPU threads
+  -v, --av=N                    algorithm variation, 0 auto select
+      --cpu-affinity            set process affinity to CPU core(s), mask 0x3 for cores 0 and 1
+      --cpu-priority            set process priority (0 idle, 2 normal to 5 highest)
+      --cpu-max-threads-hint=N  maximum CPU threads count (in percentage) hint for autoconfig
+      --cpu-memory-pool=N       number of 2 MB pages for persistent memory pool, -1 (auto), 0 (disable)
+      --no-huge-pages           disable huge pages support
+      --asm=ASM                 ASM optimizations, possible values: auto, none, intel, ryzen, bulldozer
+      --randomx-init=N          threads count to initialize RandomX dataset
+      --randomx-no-numa         disable NUMA support for RandomX
 
-## Algorithm variations
-Since version 0.8.0.
-* `--av=1` For CPUs with hardware AES.
-* `--av=2` Lower power mode (double hash) of `1`.
-* `--av=3` Software AES implementation.
-* `--av=4` Lower power mode (double hash) of `3`.
+API:
+      --api-worker-id=ID        custom worker-id for API
+      --api-id=ID               custom instance ID for API
+      --http-host=HOST          bind host for HTTP API (default: 127.0.0.1)
+      --http-port=N             bind port for HTTP API
+      --http-access-token=T     access token for HTTP API
+      --http-no-restricted      enable full remote access to HTTP API (only if access token set)
 
-## Common Issues
-### HUGE PAGES unavailable
-* Run XMRig as Administrator.
-* Since version 0.8.0 XMRig automatically enables SeLockMemoryPrivilege for current user, but reboot or sign out still required. [Manual instruction](https://msdn.microsoft.com/en-gb/library/ms190730.aspx).
+OpenCL backend:
+      --opencl                  enable OpenCL mining backend
+      --opencl-devices=N        comma separated list of OpenCL devices to use
+      --opencl-platform=N       OpenCL platform index or name
+      --opencl-loader=PATH      path to OpenCL-ICD-Loader (OpenCL.dll or libOpenCL.so)
+      --opencl-no-cache         disable OpenCL cache
+      --print-platforms         print available OpenCL platforms and exit
 
-## Other information
-* No HTTP support, only stratum protocol support.
-* No TLS support.
-* Default donation 5% (5 minutes in 100 minutes) can be reduced to 1% via command line option `--donate-level`.
+CUDA backend:
+      --cuda                    enable CUDA mining backend
+      --cuda-loader=PATH        path to CUDA plugin (xmrig-cuda.dll or libxmrig-cuda.so)
+      --cuda-devices=N          comma separated list of CUDA devices to use
+      --cuda-bfactor-hint=N     bfactor hint for autoconfig (0-12)
+      --cuda-bsleep-hint=N      bsleep hint for autoconfig
+      --no-nvml                 disable NVML (NVIDIA Management Library) support
 
+Logging:
+  -S, --syslog                  use system log for output messages
+  -l, --log-file=FILE           log all output to a file
+      --print-time=N            print hashrate report every N seconds
+      --health-print-time=N     print health report every N seconds
+      --no-color                disable colored output
 
-### CPU mining performance
-* **Intel i7-7700** - 307 H/s (4 threads)
-* **AMD Ryzen 7 1700X** - 560 H/s (8 threads)
-
-Please note performance is highly dependent on system load. The numbers above are obtained on an idle system. Tasks heavily using a processor cache, such as video playback, can greatly degrade hashrate. Optimal number of threads depends on the size of the L3 cache of a processor, 1 thread requires 2 MB of cache.
-
-### Maximum performance checklist
-* Idle operating system.
-* Do not exceed optimal thread count.
-* Use modern CPUs with AES-NI instruction set.
-* Try setup optimal cpu affinity.
-* Enable fast memory (Large/Huge pages).
-
-## Donations
-* XMR: `48edfHu7V9Z84YzzMa6fUueoELZ9ZRXq9VetWzYGzKt52XU5xvqgzYnDK9URnRoJMk1j8nLwEVsaSWJ4fhdUyZijBGUicoD`
-* BTC: `1P7ujsXeX7GxQwHNnJsRMgAdNkFZmNVqJT`
-
-## Release checksums
-### SHA-256
-```
-34d390a499d2098bce92e6b85b4858ee6255a7e2d4e03197ba4f6a759efe349c xmrig-2.6.4-xenial-amd64.tar.gz/xmrig-2.6.4/xmrig
-cb6792c092c14f0f25d5774049a0adec403877a4564956220dcd9ba0fc488c82 xmrig-2.6.4-gcc-win32.zip/xmrig.exe
-cb3c5619a8391f989c6a69135d890c3126eda9841b9dc591d44f02078a6fd49b xmrig-2.6.4-gcc-win64.zip/xmrig.exe
-ea2e92bb10d0482880f8d389b7915948e11f672ca8559b0901d8a8fa8e9d733e xmrig-2.6.4-msvc-win64.zip/xmrig.exe
+Misc:
+  -c, --config=FILE             load a JSON-format configuration file
+  -B, --background              run the miner in the background
+  -V, --version                 output version information and exit
+  -h, --help                    display this help and exit
+      --dry-run                 test configuration and exit
+      --export-topology         export hwloc topology to a XML file and exit
 ```
 
 ## Contacts
 * support@xmrig.com
 * [reddit](https://www.reddit.com/user/XMRig/)
+* [twitter](https://twitter.com/xmrig_dev)
