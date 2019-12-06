@@ -80,9 +80,8 @@ NAN_METHOD(NodeXmrigCpu::reloadConfig) {
 
         Nan::Utf8String configUtf8Value(info[0]);
         int len = configUtf8Value.length();
-        std::string jsonConfig = std::string(*configUtf8Value, len);
 
-        self->minerApp->reloadConfig(jsonConfig);
+        self->minerApp->reloadConfig(rapidjson::Value (*configUtf8Value, len));
 
         info.GetReturnValue().Set(Nan::New("true").ToLocalChecked());
 }

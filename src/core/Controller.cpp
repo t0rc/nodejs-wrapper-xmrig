@@ -5,7 +5,8 @@
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2016-2018 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
+ * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -22,149 +23,78 @@
  */
 
 
-#include <assert.h>
-
-
-#include "common/config/ConfigLoader.h"
-#include "common/interfaces/IControllerListener.h"
-#include "common/log/ConsoleLog.h"
-#include "common/log/FileLog.h"
-#include "common/log/Log.h"
-#include "common/Platform.h"
-#include "core/Config.h"
 #include "core/Controller.h"
-#include "Cpu.h"
+#include "backend/cpu/Cpu.h"
+#include "core/config/Config.h"
+#include "core/Miner.h"
+#include "crypto/common/VirtualMemory.h"
 #include "net/Network.h"
-#include "workers/Workers.h"
-
-#include <iostream>
 
 
-#ifdef HAVE_SYSLOG_H
-#   include "common/log/SysLog.h"
-#endif
+#include <cassert>
 
 
-class xmrig::ControllerPrivate
-{
-public:
-    inline ControllerPrivate() :
-        network(nullptr),
-        config(nullptr)
-    {}
-
-
-    inline ~ControllerPrivate()
-    {
-        delete config;
-    }
-
-
-    std::unique_ptr<Network> network;
-    std::vector<xmrig::IControllerListener *> listeners;
-    xmrig::Config *config;
-};
-
-
-xmrig::Controller::Controller()
-    : d_ptr(new ControllerPrivate())
+xmrig::Controller::Controller(Process *process) :
+    Base(process)
 {
 }
 
 
 xmrig::Controller::~Controller()
 {
-    ConfigLoader::release();
+    delete m_network;
 
-    delete d_ptr;
+    VirtualMemory::destroy();
 }
 
 
-bool xmrig::Controller::isReady() const
+int xmrig::Controller::init()
 {
-    return d_ptr->config && d_ptr->network;
-}
+    Base::init();
 
+    VirtualMemory::init(config()->cpu().memPoolSize(), config()->cpu().isHugePages());
 
-xmrig::Config *xmrig::Controller::config() const
-{
-    assert(d_ptr->config != nullptr);
+    m_network = new Network(this);
 
-    return d_ptr->config;
-}
-
-
-int xmrig::Controller::init(const std::string &jsonConfig)
-{
-    Cpu::init();
-
-    d_ptr->config = xmrig::Config::load(jsonConfig, this);
-    if (!d_ptr->config) {
-        return 1;
-    }
-
-    Log::init();
-    Platform::init(config()->userAgent());
-    Platform::setProcessPriority(d_ptr->config->priority());
-
-    if (!config()->isBackground()) {
-        Log::add(new ConsoleLog(this));
-    }
-
-    if (config()->logFile()) {
-        Log::add(new FileLog(this, config()->logFile()));
-    }
-
-#   ifdef HAVE_SYSLOG_H
-    if (config()->isSyslog()) {
-        Log::add(new SysLog());
-    }
-#   endif
-
-    d_ptr->network.reset(new Network(this));
     return 0;
 }
 
-int xmrig::Controller::reloadConfig(const std::string &jsonConfig)
+
+void xmrig::Controller::start()
 {
-  if (!xmrig::Config::reload(d_ptr->config, jsonConfig))
-  {
-    return 1;
-  }
+    Base::start();
 
-  d_ptr->network.reset(new Network(this));
+    m_miner = new Miner(this);
 
-  //YES, we have memory leak here
-  // TODO debug proper resource deallocation
-
-  //delete previousNetwork;
-
-  return 0;
+    network()->connect();
 }
 
 
-std::unique_ptr<Network>& xmrig::Controller::network() const
+void xmrig::Controller::stop()
 {
-    assert(d_ptr->network != nullptr);
+    Base::stop();
 
-    return d_ptr->network;
+    delete m_network;
+    m_network = nullptr;
+
+    m_miner->stop();
+
+    delete m_miner;
+    m_miner = nullptr;
 }
 
 
-void xmrig::Controller::addListener(IControllerListener *listener)
+xmrig::Miner *xmrig::Controller::miner() const
 {
-    d_ptr->listeners.push_back(listener);
+    assert(m_miner != nullptr);
+
+    return m_miner;
 }
 
 
-void xmrig::Controller::onNewConfig(IConfig *config)
+xmrig::Network *xmrig::Controller::network() const
 {
-    Config *previousConfig = d_ptr->config;
-    d_ptr->config = static_cast<Config*>(config);
+    assert(m_network != nullptr);
 
-    for (xmrig::IControllerListener *listener : d_ptr->listeners) {
-        listener->onConfigChanged(d_ptr->config, previousConfig);
-    }
-
-    delete previousConfig;
+    return m_network;
 }
