@@ -26,20 +26,23 @@
 #include <uv.h>
 
 
-#include "api/Api.h"
+#include "base/api/Api.h"
 #include "NodeApp.h"
-#include "common/Console.h"
-#include "common/log/Log.h"
-#include "common/Platform.h"
-#include "core/Config.h"
+#include "base/io/Console.h"
+#include "base/io/log/Log.h"
+#include "base/kernel/Platform.h"
+#include "core/config/Config.h"
 #include "core/Controller.h"
-#include "Cpu.h"
-#include "crypto/CryptoNight.h"
+#include "backend/cpu/Cpu.h"
+#include "crypto/cn/CryptoNight.h"
 #include "Mem.h"
 #include "net/Network.h"
 #include "Summary.h"
 #include "version.h"
-#include "workers/Workers.h"
+#include "backend/common/Workers.h"
+
+#include "base/kernel/Process.h"
+#include "base/kernel/Signals.h"
 
 #include <string>
 
@@ -47,15 +50,20 @@
 NodeApp *NodeApp::m_self = nullptr;
 
 
-
 NodeApp::NodeApp(const std::string jsonConfig) :
-    m_console(nullptr),
+//    m_console(nullptr),
     m_httpd(nullptr)
 {
     m_self = this;
 
-    m_controller = new xmrig::Controller();
-    if (m_controller->init(jsonConfig) != 0) {
+	int argc = 0;
+	char** argv = nullptr;
+	xmrig::Process process(argc,argv);
+
+    m_controller = new xmrig::Controller(&process);
+    //m_controller = new xmrig::Controller();
+
+    if (m_controller->init() != 0) {
         return;
     }
 }
@@ -63,7 +71,8 @@ NodeApp::NodeApp(const std::string jsonConfig) :
 
 NodeApp::~NodeApp()
 {
-    delete m_console;
+//    delete m_signals;
+//    delete m_console;
     delete m_controller;
 }
 
@@ -75,10 +84,14 @@ int NodeApp::exec()
     }
 
     background();
+    //m_signals = new xmrig::Signals(this);
 
-    Mem::init(m_controller->config()->isHugePages());
+    const xmrig::CpuConfig config;
 
-    Summary::print(m_controller);
+//    Mem::init(m_controller->config()->isHugePages());
+    Mem::init(config.isHugePages());
+
+    xmrig::Summary::print(m_controller);
 
     if (m_controller->config()->isDryRun()) {
         LOG_NOTICE("OK");
@@ -87,8 +100,7 @@ int NodeApp::exec()
         return 0;
     }
 
-    Workers::start(m_controller);
-
+    m_controller->start();
     m_controller->network()->connect();
 
     release();
@@ -96,13 +108,18 @@ int NodeApp::exec()
 }
 
 
-void NodeApp::reloadConfig(const std::string jsonConfig)
+void NodeApp::reloadConfig(const rapidjson::Value jsonConfig)
 {
-    Workers::restart();
-    if (m_controller->reloadConfig(jsonConfig) != 0) {
+//	xmrig::Workers::restart(); // Method restart does not exists...
+
+
+//    if (m_controller->reloadConfig(jsonConfig) != 0) {
+//        return;
+//    }
+
+    if (m_controller->reload(jsonConfig) != 0) {
         return;
     }
-
 }
 
 
@@ -114,15 +131,24 @@ void NodeApp::onConsoleCommand(char command)
 
 void NodeApp::close()
 {
-    m_controller->network()->stop();
-    Workers::stop();
+//    m_controller->network()->stop();
+    m_controller->stop();
 
-     uv_stop(uv_default_loop());
+    xmrig::Workers<xmrig::CpuLaunchData> workers;
+    workers.stop();
+
+    uv_stop(uv_default_loop());
 }
 
 std::string NodeApp::getStatus()
 {
-    return Workers::getHashrate(true);
+//  return xmrig::Workers::getHashrate(true);
+//	xmrig::Workers<xmrig::CpuLaunchData> workers;
+//	return workers.hashrate();
+
+//	xmrig::Hashrate hashrate;
+
+	return "";
 };
 
 

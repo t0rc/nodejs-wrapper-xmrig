@@ -1,20 +1,26 @@
 {
-  "name": "node-xmrig-cpu",
-  "version": "0.0.1",
-  "main": "bindings.js",
-  "scripts": {
-    "build": "node-gyp build",
-    "install": "node-gyp rebuild"
+  "name": "xmrig",
+  "version": "3.0.0",
+  "description": "RandomX, CryptoNight and Argon2 miner",
+  "main": "index.js",
+  "directories": {
+    "doc": "doc"
   },
-  "dependencies": {
-    "bindings": "*",
-    "body-parser": "^1.18.3",
-    "express": "^4.16.3",
-    "fs": "0.0.1-security",
-    "nan": "^2.10.0"
+  "scripts": {
+    "build": "node scripts/generate_cl.js"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/atanmarko/xmrig.git"
+    "url": "git+https://github.com/xmrig/xmrig.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "GPLv3",
+  "bugs": {
+    "url": "https://github.com/xmrig/xmrig/issues"
+  },
+  "homepage": "https://github.com/xmrig/xmrig#readme",
+  "dependencies": {
+    "nan": "^2.14.0"
   }
 }
