@@ -119,3 +119,4 @@ function startMining(arg) {
 
 
 setTimeout(checkStatus, 2000);
+

@@ -5,7 +5,9 @@
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2016-2018 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2018      Lee Clagett <https://github.com/vtnerd>
+ * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
+ * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -22,136 +24,139 @@
  */
 
 
-#include <stdlib.h>
+#include <cstdlib>
 #include <uv.h>
 
 
-#include "base/api/Api.h"
 #include "NodeApp.h"
+#include "backend/cpu/Cpu.h"
 #include "base/io/Console.h"
 #include "base/io/log/Log.h"
-#include "base/kernel/Platform.h"
+#include "base/kernel/Signals.h"
 #include "core/config/Config.h"
 #include "core/Controller.h"
-#include "backend/cpu/Cpu.h"
-#include "crypto/cn/CryptoNight.h"
-#include "Mem.h"
+#include "core/Miner.h"
 #include "net/Network.h"
 #include "Summary.h"
 #include "version.h"
-#include "backend/common/Workers.h"
 
-#include "base/kernel/Process.h"
-#include "base/kernel/Signals.h"
+//#include "api/Api.h"
+//#include "NodeApp.h"
+//#include "common/Console.h"
+//#include "common/log/Log.h"
+//#include "common/Platform.h"
+//#include "core/Config.h"
+//#include "core/Controller.h"
+//#include "Cpu.h"
+//#include "crypto/CryptoNight.h"
+//#include "Mem.h"
+//#include "net/Network.h"
+//#include "Summary.h"
+//#include "version.h"
+//#include "workers/Workers.h"
+//
+//#include <string>
+//
+//NodeApp *NodeApp::m_self = nullptr;
 
-#include <string>
+
+//#include "base/api/Api.h"
+//#include "NodeApp.h"
+//#include "base/io/Console.h"
+//#include "base/io/log/Log.h"
+//#include "base/kernel/Platform.h"
+//#include "core/config/Config.h"
+//#include "core/Controller.h"
+//#include "backend/cpu/Cpu.h"
+//#include "crypto/cn/CryptoNight.h"
+//#include "Mem.h"
+//#include "net/Network.h"
+//#include "Summary.h"
+//#include "version.h"
+//#include "backend/common/Workers.h"
+//
+//#include "base/kernel/Process.h"
+//#include "base/kernel/Signals.h"
+//
+//#include <string>
 
 
-NodeApp *NodeApp::m_self = nullptr;
+xmrig::NodeApp *xmrig::NodeApp::m_self = nullptr;
 
-
-NodeApp::NodeApp(const std::string jsonConfig) :
-//    m_console(nullptr),
-    m_httpd(nullptr)
+xmrig::NodeApp::NodeApp(const std::string jsonConfig)
 {
     m_self = this;
 
-	int argc = 0;
-	char** argv = nullptr;
-	xmrig::Process process(argc,argv);
+    const int argc = 2;
+    const char* argv[] = { "--config", jsonConfig.c_str() };
+    const xmrig::Process process(argc, argv);
 
     m_controller = new xmrig::Controller(&process);
-    //m_controller = new xmrig::Controller();
-
-    if (m_controller->init() != 0) {
+    if (m_controller->init() != 0)
         return;
-    }
 }
 
 
-NodeApp::~NodeApp()
+xmrig::NodeApp::~NodeApp()
 {
-//    delete m_signals;
-//    delete m_console;
     delete m_controller;
 }
 
 
-int NodeApp::exec()
+int xmrig::NodeApp::exec()
 {
-    if (!m_controller->isReady()) {
+    if (!m_controller->isReady())
         return 2;
-    }
 
-    background();
-    //m_signals = new xmrig::Signals(this);
-
-    const xmrig::CpuConfig config;
-
-//    Mem::init(m_controller->config()->isHugePages());
-    Mem::init(config.isHugePages());
+    int rc = 0;
+    if (background(rc))
+        return rc;
 
     xmrig::Summary::print(m_controller);
 
-    if (m_controller->config()->isDryRun()) {
+    if (m_controller->config()->isDryRun())
+    {
         LOG_NOTICE("OK");
-        release();
-
         return 0;
     }
 
     m_controller->start();
-    m_controller->network()->connect();
 
-    release();
-    return 0;
+    rc = uv_run(uv_default_loop(), UV_RUN_DEFAULT);
+    uv_loop_close(uv_default_loop());
+
+    return rc;
 }
 
 
-void NodeApp::reloadConfig(const rapidjson::Value jsonConfig)
+void xmrig::NodeApp::reloadConfig(const rapidjson::Value jsonConfig)
 {
-//	xmrig::Workers::restart(); // Method restart does not exists...
-
-
-//    if (m_controller->reloadConfig(jsonConfig) != 0) {
-//        return;
-//    }
-
-    if (m_controller->reload(jsonConfig) != 0) {
-        return;
-    }
-}
-
-
-void NodeApp::onConsoleCommand(char command)
-{
-
-}
-
-
-void NodeApp::close()
-{
-//    m_controller->network()->stop();
     m_controller->stop();
 
-    xmrig::Workers<xmrig::CpuLaunchData> workers;
-    workers.stop();
+    if (!m_controller->reload(jsonConfig))
+        return;
+
+    m_controller->start();
+}
+
+
+void xmrig::NodeApp::onConsoleCommand(char command)
+{
+
+}
+
+
+void xmrig::NodeApp::close()
+{
+    m_controller->stop();
 
     uv_stop(uv_default_loop());
+
+    Log::destroy();
 }
 
-std::string NodeApp::getStatus()
+
+std::string xmrig::NodeApp::getStatus()
 {
-//  return xmrig::Workers::getHashrate(true);
-//	xmrig::Workers<xmrig::CpuLaunchData> workers;
-//	return workers.hashrate();
-
-//	xmrig::Hashrate hashrate;
-
-	return "";
+    return m_controller->miner().getHashrate(true, false);
 };
-
-
-void NodeApp::release()
-{
-}

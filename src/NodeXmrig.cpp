@@ -5,7 +5,6 @@
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2018      Lee Clagett <https://github.com/vtnerd>
  * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
  * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
@@ -23,66 +22,11 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_APP_H
-#define XMRIG_APP_H
+#include <nan.h>
+#include "NodeXmrigCpu.h"
 
-#include <string>
+NAN_MODULE_INIT(InitModule) {
+    NodeXmrigCpu::Init(target);
+}
 
-//#include <uv.h>
-//#include "base/io/json/Json.h"
-//#include "base/io/json/JsonChain.h"
-
-#include "base/kernel/interfaces/IConsoleListener.h"
-
-namespace xmrig {
-
-//class Console;
-//class Httpd;
-//class Network;
-//class Options;
-
-
-class Controller;
-//class IConsoleListener;
-
-
-class NodeApp : public IConsoleListener
-{
-public:
-  XMRIG_DISABLE_COPY_MOVE_DEFAULT(NodeApp)
-
-  NodeApp(const std::string jsonConfig);
-  ~NodeApp() override;
-
-  int exec();
-  void close();
-  std::string getStatus();
-  void reloadConfig(const rapidjson::Value jsonConfig);
-
-protected:
-  void onConsoleCommand(char command) override;
-
-private:
-//  void background();
-//  void release();
-//
-//  static NodeApp *m_self;
-//
-//  Console *m_console;
-//  Httpd *m_httpd;
-//  uv_signal_t m_sigHUP;
-//  uv_signal_t m_sigINT;
-//  uv_signal_t m_sigTERM;
-//  Controller *m_controller;
-
-  bool background(int &rc);
-
-  static NodeApp *m_self;
-
-  Console *m_console       = nullptr;
-  Controller *m_controller = nullptr;
-};
-
-} /* namespace xmrig */
-
-#endif /* XMRIG_APP_H */
+NODE_MODULE(xmrigCpu, InitModule);

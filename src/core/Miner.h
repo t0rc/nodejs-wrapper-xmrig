@@ -61,6 +61,7 @@ public:
     Job job() const;
     void execCommand(char command);
     void pause();
+    const char *getHashrate(bool details, const bool colored) const;
     void printHashrate(bool details);
     void setEnabled(bool enabled);
     void setJob(const Job &job, bool donate);

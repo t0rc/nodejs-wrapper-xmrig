@@ -7,3 +7,7 @@
 .project
 .settings/
 node_modules/
+
+.vscode/
+.codelite/
+

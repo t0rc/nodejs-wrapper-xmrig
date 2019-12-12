@@ -365,10 +365,11 @@ void xmrig::Miner::pause()
 }
 
 
-void xmrig::Miner::printHashrate(bool details)
+const char *xmrig::Miner::getHashrate(bool details, const bool colored) const
 {
     char num[8 * 4] = { 0 };
     double speed[3] = { 0.0 };
+    char hashrate_buffer[1024];
 
     for (IBackend *backend : d_ptr->backends) {
         const Hashrate *hashrate = backend->hashrate();
@@ -381,12 +382,21 @@ void xmrig::Miner::printHashrate(bool details)
         backend->printHashrate(details);
     }
 
-    LOG_INFO(WHITE_BOLD("speed") " 10s/60s/15m " CYAN_BOLD("%s") CYAN(" %s %s ") CYAN_BOLD("H/s") " max " CYAN_BOLD("%s H/s"),
-             Hashrate::format(speed[0],                                 num,         sizeof(num) / 4),
-             Hashrate::format(speed[1],                                 num + 8,     sizeof(num) / 4),
-             Hashrate::format(speed[2],                                 num + 8 * 2, sizeof(num) / 4 ),
-             Hashrate::format(d_ptr->maxHashrate[d_ptr->algorithm],     num + 8 * 3, sizeof(num) / 4)
-             );
+    std::snprintf(hashrate_buffer, sizeof(hashrate_buffer), colored
+                  ? WHITE_BOLD("speed") " 10s/60s/15m " CYAN_BOLD("%s") CYAN(" %s %s ") CYAN_BOLD("H/s") " max " CYAN_BOLD("%s H/s")
+                  : "speed 10s/60s/15m %s %s %s H/s max %s H/s",
+                  Hashrate::format(speed[0],                                 num,         sizeof(num) / 4),
+                  Hashrate::format(speed[1],                                 num + 8,     sizeof(num) / 4),
+                  Hashrate::format(speed[2],                                 num + 8 * 2, sizeof(num) / 4 ),
+                  Hashrate::format(d_ptr->maxHashrate[d_ptr->algorithm],     num + 8 * 3, sizeof(num) / 4)
+                  );
+
+    return hashrate_buffer;
+}
+
+void xmrig::Miner::printHashrate(bool details)
+{
+    LOG_INFO(getHashrate(details, true));
 }
 
 

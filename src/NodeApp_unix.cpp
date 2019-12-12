@@ -5,7 +5,6 @@
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2018      Lee Clagett <https://github.com/vtnerd>
  * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
  * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
@@ -23,66 +22,49 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_APP_H
-#define XMRIG_APP_H
 
-#include <string>
-
-//#include <uv.h>
-//#include "base/io/json/Json.h"
-//#include "base/io/json/JsonChain.h"
-
-#include "base/kernel/interfaces/IConsoleListener.h"
-
-namespace xmrig {
-
-//class Console;
-//class Httpd;
-//class Network;
-//class Options;
+#include <cstdlib>
+#include <csignal>
+#include <cerrno>
+#include <unistd.h>
 
 
-class Controller;
-//class IConsoleListener;
+#include "NodeApp.h"
+#include "base/io/log/Log.h"
+#include "core/Controller.h"
 
 
-class NodeApp : public IConsoleListener
+bool xmrig::NodeApp::background(int &rc)
 {
-public:
-  XMRIG_DISABLE_COPY_MOVE_DEFAULT(NodeApp)
+    signal(SIGPIPE, SIG_IGN);
 
-  NodeApp(const std::string jsonConfig);
-  ~NodeApp() override;
+    if (!m_controller->isBackground()) {
+        return false;
+    }
 
-  int exec();
-  void close();
-  std::string getStatus();
-  void reloadConfig(const rapidjson::Value jsonConfig);
+    int i = fork();
+    if (i < 0) {
+        rc = 1;
 
-protected:
-  void onConsoleCommand(char command) override;
+        return true;
+    }
 
-private:
-//  void background();
-//  void release();
-//
-//  static NodeApp *m_self;
-//
-//  Console *m_console;
-//  Httpd *m_httpd;
-//  uv_signal_t m_sigHUP;
-//  uv_signal_t m_sigINT;
-//  uv_signal_t m_sigTERM;
-//  Controller *m_controller;
+    if (i > 0) {
+        rc = 0;
 
-  bool background(int &rc);
+        return true;
+    }
 
-  static NodeApp *m_self;
+    i = setsid();
 
-  Console *m_console       = nullptr;
-  Controller *m_controller = nullptr;
-};
+    if (i < 0) {
+        LOG_ERR("setsid() failed (errno = %d)", errno);
+    }
 
-} /* namespace xmrig */
+    i = chdir("/");
+    if (i < 0) {
+        LOG_ERR("chdir() failed (errno = %d)", errno);
+    }
 
-#endif /* XMRIG_APP_H */
+    return false;
+}
