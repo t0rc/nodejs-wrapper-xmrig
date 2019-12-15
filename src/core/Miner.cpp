@@ -365,7 +365,7 @@ void xmrig::Miner::pause()
 }
 
 
-const char *xmrig::Miner::getHashrate(bool details, const bool colored) const
+const std::string xmrig::Miner::getHashrate(bool details, const bool colored) const
 {
     char num[8 * 4] = { 0 };
     double speed[3] = { 0.0 };
@@ -391,12 +391,12 @@ const char *xmrig::Miner::getHashrate(bool details, const bool colored) const
                   Hashrate::format(d_ptr->maxHashrate[d_ptr->algorithm],     num + 8 * 3, sizeof(num) / 4)
                   );
 
-    return hashrate_buffer;
+    return std::string(hashrate_buffer);
 }
 
 void xmrig::Miner::printHashrate(bool details)
 {
-    LOG_INFO(getHashrate(details, true));
+    LOG_INFO(getHashrate(details, true).c_str());
 }
 
 

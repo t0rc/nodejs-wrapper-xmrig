@@ -25,71 +25,34 @@
 
 
 #include <cstdlib>
+
 #include <uv.h>
 
-
 #include "NodeApp.h"
-#include "backend/cpu/Cpu.h"
-#include "base/io/Console.h"
 #include "base/io/log/Log.h"
-#include "base/kernel/Signals.h"
+#include "base/kernel/Process.h"
 #include "core/config/Config.h"
 #include "core/Controller.h"
 #include "core/Miner.h"
-#include "net/Network.h"
 #include "Summary.h"
-#include "version.h"
 
-//#include "api/Api.h"
-//#include "NodeApp.h"
-//#include "common/Console.h"
-//#include "common/log/Log.h"
-//#include "common/Platform.h"
-//#include "core/Config.h"
-//#include "core/Controller.h"
-//#include "Cpu.h"
-//#include "crypto/CryptoNight.h"
-//#include "Mem.h"
-//#include "net/Network.h"
-//#include "Summary.h"
-//#include "version.h"
-//#include "workers/Workers.h"
-//
-//#include <string>
-//
-//NodeApp *NodeApp::m_self = nullptr;
+#define COMMAND_NAME "nodeXmrig"
+#define OPTION_JSON  "--config-jsonraw="
 
-
-//#include "base/api/Api.h"
-//#include "NodeApp.h"
-//#include "base/io/Console.h"
-//#include "base/io/log/Log.h"
-//#include "base/kernel/Platform.h"
-//#include "core/config/Config.h"
-//#include "core/Controller.h"
-//#include "backend/cpu/Cpu.h"
-//#include "crypto/cn/CryptoNight.h"
-//#include "Mem.h"
-//#include "net/Network.h"
-//#include "Summary.h"
-//#include "version.h"
-//#include "backend/common/Workers.h"
-//
-//#include "base/kernel/Process.h"
-//#include "base/kernel/Signals.h"
-//
-//#include <string>
-
-
-xmrig::NodeApp *xmrig::NodeApp::m_self = nullptr;
 
 xmrig::NodeApp::NodeApp(const std::string jsonConfig)
 {
-    m_self = this;
+    constexpr size_t command_size = std::strlen(COMMAND_NAME) + 1;
+    const size_t buffer_size = command_size + std::strlen(OPTION_JSON) + jsonConfig.size() + 1; 
+    char argv_buffer[buffer_size];
 
-    const int argc = 2;
-    const char* argv[] = { "--config", jsonConfig.c_str() };
-    const xmrig::Process process(argc, argv);
+    strcpy(argv_buffer, COMMAND_NAME);
+    strcpy(argv_buffer + command_size, OPTION_JSON);
+    strcat(argv_buffer + command_size, jsonConfig.c_str());
+
+    const char* argv[2] = { argv_buffer, argv_buffer + command_size };
+
+    xmrig::Process process(2, (char**) argv);
 
     m_controller = new xmrig::Controller(&process);
     if (m_controller->init() != 0)
@@ -140,12 +103,6 @@ void xmrig::NodeApp::reloadConfig(const rapidjson::Value jsonConfig)
 }
 
 
-void xmrig::NodeApp::onConsoleCommand(char command)
-{
-
-}
-
-
 void xmrig::NodeApp::close()
 {
     m_controller->stop();
@@ -158,5 +115,5 @@ void xmrig::NodeApp::close()
 
 std::string xmrig::NodeApp::getStatus()
 {
-    return m_controller->miner().getHashrate(true, false);
+    return m_controller->miner()->getHashrate(true, false);
 };

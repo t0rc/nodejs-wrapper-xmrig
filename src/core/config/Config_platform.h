@@ -40,7 +40,7 @@
 namespace xmrig {
 
 
-static const char short_options[] = "a:c:kBp:Px:r:R:s:t:T:o:u:O:v:l:S";
+static const char short_options[] = "a:c:j:kBp:Px:r:R:s:t:T:o:u:O:v:l:S";
 
 
 static const option options[] = {
@@ -61,6 +61,7 @@ static const option options[] = {
     { "av",                    1, nullptr, IConfig::AVKey                 },
     { "background",            0, nullptr, IConfig::BackgroundKey         },
     { "config",                1, nullptr, IConfig::ConfigKey             },
+    { "config-jsonraw",        1, nullptr, IConfig::ConfigJsonRaw         },
     { "cpu-affinity",          1, nullptr, IConfig::CPUAffinityKey        },
     { "cpu-priority",          1, nullptr, IConfig::CPUPriorityKey        },
     { "donate-level",          1, nullptr, IConfig::DonateLevelKey        },

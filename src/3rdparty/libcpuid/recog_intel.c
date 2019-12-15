@@ -346,7 +346,7 @@ static intel_code_and_bits_t get_brand_code_and_bits(struct cpu_id_t* data)
 	intel_code_t code = (intel_code_t) NC;
 	intel_code_and_bits_t result;
 	uint64_t bits = 0;
-	int i = 0;
+	unsigned int i = 0;
 	const char* bs = data->brand_str;
 	const char* s;
 	const struct { intel_code_t c; const char *search; } matchtable[] = {

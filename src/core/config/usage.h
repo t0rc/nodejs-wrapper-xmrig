@@ -136,6 +136,7 @@ static inline const std::string &usage()
     u += "\nMisc:\n";
 
     u += "  -c, --config=FILE             load a JSON-format configuration file\n";
+    u += "  -j, --config-jsonraw=string   load a JSON-format configuration string\n";
     u += "  -B, --background              run the miner in the background\n";
     u += "  -V, --version                 output version information and exit\n";
     u += "  -h, --help                    display this help and exit\n";

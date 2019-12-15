@@ -1,6 +1,15 @@
 // this is how we will require our module
-const xmrigCpu = require('./')
+//const xmrigCpu = require('./')
 
+var xmrigCpu
+
+if (process.env.DEBUG) {
+    xmrigCpu= require('./build/Debug/xmrigCpu.node')
+} else {
+    xmrigCpu= require('./build/Release/xmrigCpu.node')
+}
+
+module.exports = xmrigCpu
 
 var jsonConfig = {
     "algo": "cryptonight/1",
@@ -55,6 +64,7 @@ console.log("JS: Pool:"+pool);
 console.log("JS: CPU load:"+maxCpuUsage);
 
 var miner = null;
+var counter = 0;
 
 console.log("JS: Starting mining...");
 miner = new xmrigCpu.NodeXmrigCpu(JSON.stringify(jsonConfig));
@@ -63,12 +73,33 @@ console.log("JS: Native mining started!");
 
 
 function stopMining(arg) {
+    counter++;
+    console.log("stopMining counter:" + counter);
 
+    console.log("JS: Ending mining...");
+    miner.stopMining();
+    console.log("JS: Mining ended");
+
+    setTimeout(checkStatus, 2000);
 }
 
-var counter = 0;
-function checkStatus(arg) {
+function startMining(arg) {
+    jsonConfig.pools[0].url = pool2;
 
+    //here reload config
+    console.log("JS: Reloading config...");
+    miner.reloadConfig(JSON.stringify(jsonConfig));
+    counter++;
+    console.log("startMining counter:" + counter);
+
+    console.log("JS: Starting mining...");
+    miner.startMining();
+    console.log("JS: Mining started");
+
+    setTimeout(checkStatus, 2000);
+}
+
+function checkStatus(arg) {
     console.log("JS: Hashrate:" + miner.getStatus());
     counter++;
     console.log("checkStatus counter:" + counter);
@@ -85,38 +116,6 @@ function checkStatus(arg) {
         setTimeout(checkStatus, 1000);
     }
 }
-
-function stopMining(arg) {
-
-    counter++;
-    console.log("stopMining counter:" + counter);
-
-    console.log("JS: Ending mining...");
-    miner.stopMining();
-    console.log("JS: Mining ended");
-
-
-    setTimeout(checkStatus, 2000);
-
-
-}
-function startMining(arg) {
-    jsonConfig.pools[0].url = pool2;
-    //here reload config
-    console.log("JS: Reloading config...");
-    miner.reloadConfig(JSON.stringify(jsonConfig));
-    counter++;
-    console.log("startMining counter:" + counter);
-
-    console.log("JS: Starting mining...");
-    miner.startMining();
-    console.log("JS: Mining started");
-
-
-    setTimeout(checkStatus, 2000);
-
-}
-
 
 setTimeout(checkStatus, 2000);
 

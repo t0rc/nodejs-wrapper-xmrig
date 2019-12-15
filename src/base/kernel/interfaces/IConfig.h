@@ -54,6 +54,7 @@ public:
         BackgroundKey        = 'B',
         ColorKey             = 1002,
         ConfigKey            = 'c',
+        ConfigJsonRaw        = 'j',
         DonateLevelKey       = 1003,
         KeepAliveKey         = 'k',
         LogFileKey           = 'l',

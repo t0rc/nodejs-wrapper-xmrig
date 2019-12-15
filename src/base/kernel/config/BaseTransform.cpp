@@ -76,6 +76,12 @@ void xmrig::BaseTransform::load(JsonChain &chain, Process *process, IConfigTrans
 
             doc = Document(kObjectType);
         }
+        else if (key == IConfig::ConfigJsonRaw) {
+            chain.add(std::move(doc));
+            chain.addRaw(optarg);
+
+            doc = Document(kObjectType);
+        }
         else {
             transform.transform(doc, key, optarg);
         }

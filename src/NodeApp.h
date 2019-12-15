@@ -28,58 +28,33 @@
 
 #include <string>
 
-//#include <uv.h>
-//#include "base/io/json/Json.h"
-//#include "base/io/json/JsonChain.h"
+#include "base/io/json/Json.h"
+#include "base/io/json/JsonChain.h"
+#include "base/tools/Object.h"
 
-#include "base/kernel/interfaces/IConsoleListener.h"
 
 namespace xmrig {
 
-//class Console;
-//class Httpd;
-//class Network;
-//class Options;
-
 
 class Controller;
-//class IConsoleListener;
 
-
-class NodeApp : public IConsoleListener
+class NodeApp
 {
 public:
   XMRIG_DISABLE_COPY_MOVE_DEFAULT(NodeApp)
 
   NodeApp(const std::string jsonConfig);
-  ~NodeApp() override;
+  ~NodeApp();
 
   int exec();
   void close();
   std::string getStatus();
   void reloadConfig(const rapidjson::Value jsonConfig);
 
-protected:
-  void onConsoleCommand(char command) override;
-
 private:
-//  void background();
-//  void release();
-//
-//  static NodeApp *m_self;
-//
-//  Console *m_console;
-//  Httpd *m_httpd;
-//  uv_signal_t m_sigHUP;
-//  uv_signal_t m_sigINT;
-//  uv_signal_t m_sigTERM;
-//  Controller *m_controller;
-
+  // Method defined into NodeApp_[unix|win].cpp
   bool background(int &rc);
 
-  static NodeApp *m_self;
-
-  Console *m_console       = nullptr;
   Controller *m_controller = nullptr;
 };
 
