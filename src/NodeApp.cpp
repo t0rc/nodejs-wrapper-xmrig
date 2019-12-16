@@ -29,7 +29,9 @@
 #include <uv.h>
 
 #include "NodeApp.h"
+#include "base/io/Console.h"
 #include "base/io/log/Log.h"
+#include "base/kernel/Signals.h"
 #include "base/kernel/Process.h"
 #include "core/config/Config.h"
 #include "core/Controller.h"
@@ -62,7 +64,9 @@ xmrig::NodeApp::NodeApp(const std::string jsonConfig)
 
 xmrig::NodeApp::~NodeApp()
 {
+    delete m_console;
     delete m_controller;
+    delete m_signals;
 }
 
 
@@ -71,9 +75,14 @@ int xmrig::NodeApp::exec()
     if (!m_controller->isReady())
         return 2;
 
+    m_signals = new Signals(this);
+
     int rc = 0;
     if (background(rc))
         return rc;
+
+    if (!m_controller->isBackground())
+        m_console = new Console(this);
 
     xmrig::Summary::print(m_controller);
 
@@ -103,8 +112,49 @@ void xmrig::NodeApp::reloadConfig(const rapidjson::Value jsonConfig)
 }
 
 
+void xmrig::NodeApp::onConsoleCommand(char command)
+{
+    if (command == 3) {
+        LOG_WARN("Ctrl+C received, exiting");
+        close();
+    }
+    else {
+        m_controller->miner()->execCommand(command);
+    }
+}
+
+
+void xmrig::NodeApp::onSignal(int signum)
+{
+    switch (signum)
+    {
+    case SIGHUP:
+        LOG_WARN("SIGHUP received, exiting");
+        break;
+
+    case SIGTERM:
+        LOG_WARN("SIGTERM received, exiting");
+        break;
+
+    case SIGINT:
+        LOG_WARN("SIGINT received, exiting");
+        break;
+
+    default:
+        return;
+    }
+
+    close();
+}
+
+
 void xmrig::NodeApp::close()
 {
+    m_signals->stop();
+
+    if (m_console)
+        m_console->stop();
+
     m_controller->stop();
 
     uv_stop(uv_default_loop());
@@ -115,5 +165,5 @@ void xmrig::NodeApp::close()
 
 std::string xmrig::NodeApp::getStatus()
 {
-    return m_controller->miner()->getHashrate(true, false);
+    return m_controller->miner()->getHashrate(true);
 };

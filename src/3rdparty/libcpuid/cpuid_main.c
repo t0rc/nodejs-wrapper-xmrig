@@ -385,5 +385,5 @@ int cpu_identify(struct cpu_raw_data_t* raw, struct cpu_id_t* data)
 
 const char* cpuid_lib_version(void)
 {
-	return "2.1.0"; //VERSION;
+	return VERSION;
 }

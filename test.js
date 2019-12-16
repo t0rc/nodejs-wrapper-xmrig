@@ -12,56 +12,93 @@ if (process.env.DEBUG) {
 module.exports = xmrigCpu
 
 var jsonConfig = {
-    "algo": "cryptonight/1",
     "api": {
+        "id": null,
+        "worker-id": null
+    },
+    "http": {
+        "enabled": false,
+        "host": "127.0.0.1",
         "port": 0,
         "access-token": null,
-        "worker-id": null,
-        "ipv6": false,
         "restricted": true
     },
-    "av": 0,
+    "autosave": true,
+    "version": 1,
     "background": false,
     "colors": true,
-    "cpu-affinity": null,
-    "cpu-priority": null,
+    "randomx": {
+        "init": -1,
+        "numa": true
+    },
+    "cpu": {
+        "affinity": null,
+        "enabled": true,
+        "huge-pages": true,
+        "hw-aes": null,
+        "priority": null,
+        "memory-pool": false,
+        "max-threads-hint": 100,
+        "threads": null,
+        "asm": true,
+        "argon2-impl": null,
+        "cn/0": false,
+        "cn-lite/0": false
+    },
+    "opencl": {
+        "enabled": false,
+        "cache": true,
+        "loader": null,
+        "platform": "AMD",
+        "cn/0": false,
+        "cn-lite/0": false
+    },
+    "cuda": {
+        "enabled": false,
+        "loader": null,
+        "nvml": true,
+        "cn/0": false,
+        "cn-lite/0": false
+    },
     "donate-level": 0,
-    "huge-pages": true,
-    "hw-aes": null,
+    "donate-over-proxy": 1,
     "log-file": null,
-    "max-cpu-usage": 75,
     "pools": [
         {
-            "url": "",
-            "user": "",
+            "algo": "rx/sfx",
+            "coin": null,
+            "url": "donate.v2.xmrig.com:3333",
+            "user": "YOUR_WALLET_ADDRESS",
             "pass": "x",
             "rig-id": null,
             "nicehash": false,
             "keepalive": false,
-            "variant": 1
+            "enabled": true,
+            "tls": false,
+            "tls-fingerprint": null,
+            "daemon": false,
+            "self-select": null
         }
     ],
     "print-time": 60,
+    "health-print-time": 60,
     "retries": 5,
     "retry-pause": 5,
-    "safe": false,
-    "threads": null,
+    "syslog": false,
     "user-agent": null,
-    "watch": false
-};
+    "watch": true
+} ;
 
-var userWallet = "Safex5zeNaJdsHT4VBieWg1EtUMtTrVFARZm2jt2qRSef5DQK4RFcqgAMsLp4yDiQAB8W1JLBs7zgZUGErQXf8DFKQQdChvjRxQ55";
-var pool = "safex.luckypool.io:3366";
+var userWallet = "SFXtzS2TXfSZu4XJh8sRNsF7iqe66dWX8NByr3CGDwM45Bo8tbsNuwffaTbjSr6Eqd9ihBB3WmTB3ftS4aNqDz9EMapGkh6FJKG";
+//var pool = "safex.luckypool.io:3366";
+var pool = "pool.safexnews.net:5555";
 var pool2 = "pool.safexnews.net:1111";
-var maxCpuUsage = 75;
 
 jsonConfig.pools[0].url = pool;
 jsonConfig.pools[0].user = userWallet;
-jsonConfig["max-cpu-usage"] = maxCpuUsage;
 
 console.log("JS: User address:"+userWallet);
 console.log("JS: Pool:"+pool);
-console.log("JS: CPU load:"+maxCpuUsage);
 
 var miner = null;
 var counter = 0;
@@ -118,4 +155,3 @@ function checkStatus(arg) {
 }
 
 setTimeout(checkStatus, 2000);
-

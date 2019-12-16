@@ -28,6 +28,8 @@
 
 #include <string>
 
+#include "base/kernel/interfaces/IConsoleListener.h"
+#include "base/kernel/interfaces/ISignalListener.h"
 #include "base/io/json/Json.h"
 #include "base/io/json/JsonChain.h"
 #include "base/tools/Object.h"
@@ -35,27 +37,35 @@
 
 namespace xmrig {
 
-
+class Console;
 class Controller;
+class Signals;
 
-class NodeApp
+
+class NodeApp : public IConsoleListener, public ISignalListener
 {
 public:
-  XMRIG_DISABLE_COPY_MOVE_DEFAULT(NodeApp)
+    XMRIG_DISABLE_COPY_MOVE_DEFAULT(NodeApp)
 
-  NodeApp(const std::string jsonConfig);
-  ~NodeApp();
+    NodeApp(const std::string jsonConfig);
+    ~NodeApp() override;
 
-  int exec();
-  void close();
-  std::string getStatus();
-  void reloadConfig(const rapidjson::Value jsonConfig);
+    int exec();
+    void close();
+    std::string getStatus();
+    void reloadConfig(const rapidjson::Value jsonConfig);
+
+protected:
+    void onConsoleCommand(char command) override;
+    void onSignal(int signum) override;
 
 private:
-  // Method defined into NodeApp_[unix|win].cpp
-  bool background(int &rc);
+    // Method defined into NodeApp_[unix|win].cpp
+    bool background(int &rc);
 
-  Controller *m_controller = nullptr;
+    Console *m_console       = nullptr;
+    Controller *m_controller = nullptr;
+    Signals *m_signals       = nullptr;
 };
 
 } /* namespace xmrig */

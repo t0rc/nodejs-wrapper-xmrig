@@ -62,7 +62,7 @@ public:
     Job job() const;
     void execCommand(char command);
     void pause();
-    const std::string getHashrate(bool details, const bool colored) const;
+    const std::string getHashrate(bool details) const;
     void printHashrate(bool details);
     void setEnabled(bool enabled);
     void setJob(const Job &job, bool donate);

@@ -23,6 +23,7 @@
  */
 
 #include <nan.h>
+
 #include "NodeXmrigCpu.h"
 
 NAN_MODULE_INIT(InitModule) {
