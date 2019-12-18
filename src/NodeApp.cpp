@@ -44,8 +44,8 @@
 
 xmrig::NodeApp::NodeApp(const std::string jsonConfig)
 {
-    constexpr size_t command_size = std::strlen(COMMAND_NAME) + 1;
-    const size_t buffer_size = command_size + std::strlen(OPTION_JSON) + jsonConfig.size() + 1; 
+    constexpr size_t command_size = sizeof(COMMAND_NAME);
+    const size_t buffer_size = command_size + sizeof(OPTION_JSON) + jsonConfig.size(); 
     char argv_buffer[buffer_size];
 
     strcpy(argv_buffer, COMMAND_NAME);
